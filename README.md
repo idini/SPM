@@ -12,7 +12,7 @@ Algorithm works in this way:
 Rather than "cv::resize" operation, you can apply any operation, or filter, just modifying files.
 
 Files:
-ReduceVideo_FastFlow.cpp is the implementation using FastFlow Library [a relative link](http://calvados.di.unipi.it/)
+ReduceVideo_FastFlow.cpp is the implementation using [FastFlow Library ](http://calvados.di.unipi.it/)
 ReduceVideo_Threads.cpp is the implementation using Standard Library Thread C++11 
 
 Obvoiusly, there is a "Sequential" Version of filter. You can see it in "Sequential.cpp" file.
