@@ -1,0 +1,36 @@
+CV_ROOT		= /usr/local/include/
+FF_ROOT		= /Users/Maurizio/SandBox/SPM/fastflow/
+CV_LIBS 	= -L/usr/local/lib/ -lopencv_core -lopencv_highgui -lopencv_imgcodecs -lopencv_videoio  -lopencv_video -lopencv_imgproc -lpthread 
+CXX			= /usr/local/gcc-5.2.0/bin/g++-5.2.0  
+INCLUDE_CV	= -I $(CV_ROOT)  
+INCLUDE_FF	= -I $(FF_ROOT)  
+CXXFLAGS  	= -Wall -std=c++11 -w #--verbose  
+LDFLAGS 	= -pthread
+OPTFLAGS	= -O3 
+VECTFLAGS	= -ftree-vectorize -floop-optimize -funroll-all-loops -finline-functions # -ftree-vectorizer-verbose=5
+
+TARGETS		= ReduceVideo_FastFlow \
+			  ReduceVideo_Threads  \
+			  Sequential
+
+all: ReduceVideo_FastFlow ReduceVideo_Threads Sequential
+
+Sequential: Sequential.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDE_CV) $(CV_LIBS) $(OPTFLAGS) $(VECTFLAGS) Sequential.cpp -o Sequential $(LDFLAGS) 
+
+ReduceVideo_Threads: ReduceVideo_Threads.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDE_CV) $(CV_LIBS) $(OPTFLAGS) $(VECTFLAGS) ReduceVideo_Threads.cpp -o ReduceVideo_Threads $(LDFLAGS) 
+
+ReduceVideo_FastFlow:  ReduceVideo_FastFlow.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDE_CV) $(CV_LIBS) $(INCLUDE_FF) $(OPTFLAGS) $(VECTFLAGS) ReduceVideo_FastFlow.cpp -o ReduceVideo_FastFlow $(LDFLAGS) 
+
+
+clean		: 
+	rm -f $(TARGETS)
+cleanall	: clean
+	\rm -f *.o *~
+
+
+
+
+
