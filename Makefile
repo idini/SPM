@@ -10,20 +10,20 @@ LDFLAGS 	= -pthread
 OPTFLAGS	= -O3 
 VECTFLAGS	= -ftree-vectorize -floop-optimize -funroll-all-loops -finline-functions #-ftree-vectorizer-verbose=5
 
-TARGETS		= ReduceVideo_FastFlow \
-			  ReduceVideo_Threads  \
+TARGETS		= StreamVideo_FastFlow \
+			  StreamVideo_Threads  \
 			  Sequential
 
-all: ReduceVideo_FastFlow ReduceVideo_Threads Sequential
+all: StreamVideo_FastFlow StreamVideo_Threads Sequential
 
 Sequential: Sequential.cpp
 	$(CXX) Sequential.cpp -o Sequential $(CXXFLAGS) $(INCLUDE_CV) $(CV_LIBS) $(OPTFLAGS) $(VECTFLAGS)  $(LDFLAGS) 
 
-ReduceVideo_Threads: ReduceVideo_Threads.cpp
-	$(CXX) ReduceVideo_Threads.cpp -o ReduceVideo_Threads $(CXXFLAGS) $(INCLUDE_CV) $(CV_LIBS) $(OPTFLAGS) $(VECTFLAGS)  $(LDFLAGS) 
+StreamVideo_Threads: StreamVideo_Threads.cpp
+	$(CXX) StreamVideo_Threads.cpp -o StreamVideo_Threads $(CXXFLAGS) $(INCLUDE_CV) $(CV_LIBS) $(OPTFLAGS) $(VECTFLAGS)  $(LDFLAGS) 
 
-ReduceVideo_FastFlow:  ReduceVideo_FastFlow.cpp
-	$(CXX) ReduceVideo_FastFlow.cpp -o ReduceVideo_FastFlow $(CXXFLAGS) $(INCLUDE_CV) $(CV_LIBS) $(INCLUDE_FF) $(OPTFLAGS) $(LDFLAGS) 
+StreamVideo_FastFlow:  StreamVideo_FastFlow.cpp
+	$(CXX) StreamVideo_FastFlow.cpp -o StreamVideo_FastFlow $(CXXFLAGS) $(INCLUDE_CV) $(CV_LIBS) $(INCLUDE_FF) $(OPTFLAGS) $(LDFLAGS) 
 
 clean		: 
 	rm -f $(TARGETS)

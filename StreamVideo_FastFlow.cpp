@@ -125,7 +125,7 @@ struct Collector : ff_node {
 };
 
 void Usage(){
-    printf("Usage: ReduceVideo_FastFlow <input filename> <ray> <output filename> <workers>\n"
+    printf("Usage: StreamVideo_FastFlow <input filename> <ray> <output filename> <workers>\n"
            "Where:\n"
            " - <input filename> is the name of the file video in input\n"
            " - <ray> is the value that express the magnitude of the submatrices\n"
@@ -138,7 +138,7 @@ int main(int argc, char** argv) {
     setNumThreads(0);
 #ifdef DEBUG
   printf("\n---------------------------------\n"
-         "         ReduceVideo               \n"
+         "         StreamVideo               \n"
          "   Implemented with FastFlow       \n"
          "         Maurizio Idini            \n"
          "---------------------------------\n\n");

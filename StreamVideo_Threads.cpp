@@ -1,16 +1,16 @@
-#include "inc/ReduceVideo_Threads.hpp"
+#include "inc/StreamVideo_Threads.hpp"
 
 // #define DEBUG
 
 using namespace std;
 using namespace cv;
 
-ReduceVideo::ReduceVideo() {
+StreamVideo::StreamVideo() {
     em_to_wor  = new SharedQueue<Task>();
     wor_to_col = new SharedMap<Mat>();
 }
 
-void *ReduceVideo::emitter( const char* filename, const char* _ray ) {
+void *StreamVideo::emitter( const char* filename, const char* _ray ) {
   ray = atoi(_ray);
   inputName = filename;
   VideoCapture inputVideo(inputName);
@@ -33,7 +33,7 @@ void *ReduceVideo::emitter( const char* filename, const char* _ray ) {
   return (void*)NULL;
 }
 
-void *ReduceVideo::worker() {
+void *StreamVideo::worker() {
   Task* t;
   int cnt=0;
   while (!em_to_wor->empty()) {
@@ -52,7 +52,7 @@ void *ReduceVideo::worker() {
   return (void*)NULL;
 }
 
-void *ReduceVideo::collector(const char* outputName) {
+void *StreamVideo::collector(const char* outputName) {
   VideoWriter outputVideo;
   outputVideo.open(outputName, fourcc, fps, frameSize, isColor);
   if(!outputVideo.isOpened())
@@ -68,13 +68,13 @@ void *ReduceVideo::collector(const char* outputName) {
   return (void*)NULL;
 }
 
-void ReduceVideo::create_and_run(int num, const char *inputName, const char* ray, const char *outputName) {
+void StreamVideo::create_and_run(int num, const char *inputName, const char* ray, const char *outputName) {
   queue<thread *> * threads = new queue<thread *>();
   num_threads = num;
-  thread * e = new thread( &ReduceVideo::emitter, this, inputName, ray);//[=] { this->emitter(inputName, ray); } );
+  thread * e = new thread( &StreamVideo::emitter, this, inputName, ray);//[=] { this->emitter(inputName, ray); } );
   e->join();
   while (num > 0) {
-    thread * t = new thread( &ReduceVideo::worker,this); //[=] { this->worker(); } );
+    thread * t = new thread( &StreamVideo::worker,this); //[=] { this->worker(); } );
     threads->push(t);
     num--;
   }
@@ -82,12 +82,12 @@ void ReduceVideo::create_and_run(int num, const char *inputName, const char* ray
     threads->front()->join();
     threads->pop();
   }
-  thread * c = new thread( &ReduceVideo::collector, this, outputName); //[=] { this->collector(outputName); } );
+  thread * c = new thread( &StreamVideo::collector, this, outputName); //[=] { this->collector(outputName); } );
   c->join();
 }
 
 void Usage(){
-    printf("Usage: ReduceVideo_Threads <input filename> <ray> <output filename> <workers>\n"
+    printf("Usage: StreamVideo_Threads <input filename> <ray> <output filename> <workers>\n"
            "Where:\n"
            " - <input filename> is the name of the file video in input\n"
            " - <ray> is the value that express the magnitude of the submatrices\n"
@@ -100,7 +100,7 @@ int main(int argc, char** argv) {
     setNumThreads(0);
 #ifdef DEBUG
   printf("\n---------------------------------\n"
-         "         ReduceVideo               \n"
+         "         StreamVideo               \n"
          "   Implemented with Threads C++11  \n"
          "         Maurizio Idini            \n"
          "---------------------------------\n\n");
@@ -109,7 +109,7 @@ int main(int argc, char** argv) {
     return -1;
   }
 #endif
-  ReduceVideo r = ReduceVideo();
+  StreamVideo r = StreamVideo();
   gettimeofday(&t0,NULL); 
   r.create_and_run(atoi(argv[4]), argv[1], argv[2], argv[3]);
   gettimeofday(&t1,NULL); 

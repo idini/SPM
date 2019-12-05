@@ -1,7 +1,7 @@
  #!/bin/bash
 printf $(clear)
 printf "\n--------------------------------------------------\n"
-printf "        	ReduceVideo                       		\n"
+printf "        	StreamVideo                       		\n"
 printf "   Implemented with FastFlow and Threads C++11      \n"
 printf "        	Maurizio Idini            				\n"
 printf "\n--------------------------------------------------\n\n"
@@ -41,7 +41,7 @@ if(("${compiler:0:1}" >= 4))
 		for i in {1..24}
 		do
 			printf "$i "
-			out=$(./ReduceVideo_FastFlow video/WarIsOver.avi 2 videoOutput/FF_$i.avi $i)
+			out=$(./StreamVideo_FastFlow video/WarIsOver.avi 2 videoOutput/FF_$i.avi $i)
 			IFS=' ' read -r -a array <<< "$out"
 			# time_emitter="${array[0]}" #SUPERFLUO
 			time_worker=${array[1]}
@@ -136,7 +136,7 @@ if(("${compiler:0:1}" >= 4))
 		for i in {1..24}
 		do
 			printf "$i "
-			tparn=$(./ReduceVideo_Threads video/WarIsOver.avi 2 videoOutput/Th_$i.avi $i)
+			tparn=$(./StreamVideo_Threads video/WarIsOver.avi 2 videoOutput/Th_$i.avi $i)
 			speedup=$(bc -l <<< "$timeSequential/$tparn")
 			if [ "$i" -eq 1 ]
 				then

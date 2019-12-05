@@ -46,7 +46,7 @@ language={Java},
 \begin{document}
 \renewcommand{\figurename}{Fig.}
 \begin{center}
-\LARGE\textbf{Reducing Video Size\\Implementazione per architetture multi-core mediante l'utilizzo delle librerie FastFlow e Threads C++11}\\
+\LARGE\textbf{Stream Video Processor\\Implementazione per architetture multi-core mediante l'utilizzo delle librerie FastFlow e Threads C++11}\\
 \vspace{0.2in}
 \center
 \normalsize{Maurizio Idini}\\
@@ -56,7 +56,7 @@ language={Java},
 \end{center}
 
 \section*{Abstract}
-In questa relazione si analizza la risoluzione e l'implementazione sequenziale e parallela del problema del \textbf{Reducing Video Size}, ossia dato un video, si riduce la grandezza di ogni frame secondo un dato parametro, lavorando su architetture a pi\`u cores. L'implementazione parallela \`e stata attuata mediante l'utilizzo della libreria \textbf{FastFlow} e della libreria standard \textbf{Thread C++11}. Si son confrontate poi le prestazioni fra loro e con i modelli teorici.
+In questa relazione si analizza la risoluzione e l'implementazione sequenziale e parallela del problema del \textbf{Stream Video Processor} affrontando, come caso d'uso, il problema del Reducing Video Size, ossia dato un video, si riduce la grandezza di ogni frame secondo un dato parametro, lavorando su architetture a pi\`u cores. L'implementazione parallela \`e stata attuata mediante l'utilizzo della libreria \textbf{FastFlow} e della libreria standard \textbf{Thread C++11}. Si son confrontate poi le prestazioni fra loro e con i modelli teorici.
 
 \section{Introduzione}
 Un file video, generalmente di formato .avi, pu\`o essere descritto come una sequenza di frames, ossia matrici codificate in un determinato modo. Generamente, la codifica pi\`u comune definisce ogni pixel del frame come una tupla di t valori, corrispondente ai canali di codifica del frame, come RGB o HSV, e che dunque rappresentano il colore del pixel. Ad esempio, OpenCv codifica generalmente i frames mediante la macro \texttt{CV\_8UC3}, dove 8 sono i bits che rappresentano il valore, U denota che il valore \`e Unsigned, e dunque il valore \`e espresso nel range [0,255], 3 denota il numero di canali. Ad esempio, un elemento di un frame, ossia un'immagine definita da una matrice (che in OpenCV \`e rappresentata dall'oggetto Mat),  \`e una terna [12,136,200].
@@ -87,7 +87,7 @@ Dunque l'operazione da applicare al frame pu\`o generalmente essere un filtro \t
 
 
 \section{Design}
-La fase di design ha portato all'implementazione dei tre algoritmi: Sequential, ReduceVideo\_FastFlow e ReduceVideo\_Threads. Il primo si occupa di risolvere il problema in maniera sequenziale, mentre i restanti solo le implementazioni parallele, rispettivamente, utilizzando FastFlow e Threads.
+La fase di design ha portato all'implementazione dei tre algoritmi: Sequential, StreamVideo\_FastFlow e StreamVideo\_Threads. Il primo si occupa di risolvere il problema in maniera sequenziale, mentre i restanti solo le implementazioni parallele, rispettivamente, utilizzando FastFlow e Threads.
 \\Sia $V$ un video e $F$ l'insieme dei suoi frame. Supponiamo di avere accesso ad ogni singolo frame, e dunque ogni singola matrice $ f \in F$.
 Denotiamo con $f_{i,k}^{ray \times ray}$ la k-esima sottomatrice del frame $f_i$ di dimensioni $ray \times ray$ dove $ray$ \`e il numero delle righe e delle colonne delle sottomatrici. %Inoltre definiamo la funzione $Op : Mat \times Mat \times func \rightarrow Bool$ come quella funzione che prende in input due matrici, applica $func$ sulla prima matrice, scrive il risultato sulla seconda matrice e restituisce un booleano raprresentante l'esito dell'operazione.
 \\Il problema del Reducing Video Size consiste nel modificare ogni frame $f_i$ nelle sue dimensioni sulla base di $ray$, quindi a partire dal frame corrente $f_i$ di dimensioni $[m \times n]$, si crea un nuovo frame $g_i$ di dimensioni $[m/ray \times n/ray]$.
@@ -143,7 +143,7 @@ La \texttt{Cv::resize(input,output,output.Size)} applica una resize al frame in 
 
 
 
-\subsection{ReduceVideo\_FastFlow}
+\subsection{StreamVideo\_FastFlow}
 L'algoritmo sequenziale pu\`o essere parallelizzato mediante l'utilizzo del \textbf{Modello Farm}: il Video viene aperto e ogni frame viene assegnato ad un worker; ogni worker provvede ad applicare la riduzione delle dimensioni del frame e restituisce un nuovo frame. I nuovi frame vengono scritti nel nuovo video in maniera ordinata mediante l'utilizzo del metodo \texttt{all\_gather}, il quale si occupa di collezionare i risultati da ogni worker in maniera ordinata: il frame inviato al worker $i$ \`e quello che viene salvato nel vettore di collezione in posizione $i$. Il calcolo termina quanto tutti i frame vengono processati. Il modello \`e rappresentato in figura \ref{img:ofarm}.
 
 \begin{figure}[h]
@@ -157,12 +157,12 @@ Le scelte implementative pi\`u importanti riguardano l'implementazione del Worke
 \\Un'alternativa sarebbe potuta essere rimuovere il collector e lasciare il compito di scrivere i frame risultanti ad ogni worker, ed il tempo di completamento, maggiormente dettato dal tempo di servizio del collector, sarebbe diminuito in proporzione al grado di parallelismo ma la scrittura su video vanificava i risultati per via della perdita di frame.
 \\Per quanto concerne il Collector, il nodo \`e stato implementato come un normale nodo, ma con la differenza che colleziona i risultati dai Workers mediante il metodo \texttt{all\_gather}: tale metodo implementa una \textbf{Map} tra i Workers e il vettore di collezione, mappando uno-a-uno ogni risultato dei Workers ed il vettore. Tale metodo risulta ottimo in termini di tempo ($\sim 0.05 ms$) ma, come si vedr\`a nei prossimi paragrafi, il tempo di servizio \`e maggiorato a causa della scrittura dei frame su video.
 
-\subsection{ReduceVideo\_Threads}
+\subsection{StreamVideo\_Threads}
 L'implementazione parallela \`e per ovvi motivi differente utilizzando la libreria Thread. Il modello sviluppato \`e, come per la precedente implementazione, il Modello Farm. 
 \\Dapprima si \`e provveduto a implementare gli \textit{Shared Object}, dei contenitori utilizzati per scambiare informazioni tra i nodi della Farm: tra Emitter e Worker gli scambi avvengono mediante la \textit{SharedQueue}, una Queue con metodi \textit{push} e \textit{pop} regolati da \textit{mutex} e \textit{condition\_variable}; tra Worker e Collector gli scambi avvengono tra una \textit{SharedMap}, costruita per preservare l'ordinamento. 
-\\La classe principale \`e \textit{ReduceVideo}, la quale implementa al suo interno, oltre i classici Emitter, Worker, Collector, i metodi per l'esecuzione dei threads. La classe \`e rappresentata nell'algoritmo mostrato in Codice 2. 
+\\La classe principale \`e \textit{StreamVideo}, la quale implementa al suo interno, oltre i classici Emitter, Worker, Collector, i metodi per l'esecuzione dei threads. La classe \`e rappresentata nell'algoritmo mostrato in Codice 2. 
 
-\begin{lstlisting}[backgroundcolor=\color{White}, caption={Pseudo-code ReduceVideo\_Threads}, mathescape=true] 
+\begin{lstlisting}[backgroundcolor=\color{White}, caption={Pseudo-code StreamVideo\_Threads}, mathescape=true] 
 input: Video V, int ray, int numthreads
 output: Video W
 SharedQueue em-to-wor
@@ -464,8 +464,8 @@ Prima di utilizzare il software \`e necessario compilarlo, recandosi all'interno
 Esso compiler\`a i tre file contenuti all'interno della directory stessa: 
 \begin{description}
 \item[Sequential.cpp] \`e il file contenente l'implementazione sequenziale
-\item[ReduceVideo\_FastFlow.cpp] \`e il file contenente l'implementazione parallela utilizzando la libreria FastFLow
-\item[ReduceVideo\_Threads.cpp] \`e il file contenente l'implementazione parallela utilizzando la libreria standard Threads C++11
+\item[StreamVideo\_FastFlow.cpp] \`e il file contenente l'implementazione parallela utilizzando la libreria FastFLow
+\item[StreamVideo\_Threads.cpp] \`e il file contenente l'implementazione parallela utilizzando la libreria standard Threads C++11
 \end{description}
 Al fine di compilare il software in maniera efficiente e compatibile \`e necessario aver sulla propria macchina una versione di GCC uguale o superiore a 4.8. Per visualizzare la versione del compilatore installata sulla propria macchina, eseguire 
 \begin{lstlisting}[language=bash]
@@ -480,8 +480,8 @@ o
 Gli eseguibili risultanti dalla compilazione sono:
 \begin{description}
 \item[Sequential] il quale accetta in input 3 parametri: \textbf{filevideo.avi} \textbf{ray} \textbf{outputvideo.avi}
-\item[ReduceVideo\_FastFlow] il quale accetta in input 4 parametri: \textbf{filevideo.avi} \textbf{ray} \textbf{outputvideo.avi} \textbf{filevideo.avi} \textbf{num\_threads} 
-\item[ReduceVideo\_Threads] il quale accetta in input 4 parametri: \textbf{filevideo.avi} \textbf{ray} \textbf{outputvideo.avi} \textbf{num\_threads} 
+\item[StreamVideo\_FastFlow] il quale accetta in input 4 parametri: \textbf{filevideo.avi} \textbf{ray} \textbf{outputvideo.avi} \textbf{filevideo.avi} \textbf{num\_threads} 
+\item[StreamVideo\_Threads] il quale accetta in input 4 parametri: \textbf{filevideo.avi} \textbf{ray} \textbf{outputvideo.avi} \textbf{num\_threads} 
 \end{description}
 
 \subsection{Script}

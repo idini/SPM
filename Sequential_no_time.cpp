@@ -18,8 +18,10 @@ int main(int argc, char **argv){
     }
     int ex = static_cast<int>(inputVideo.get(CAP_PROP_FOURCC));     // Get Codec Type- Int form
     Size S = Size((int) inputVideo.get(CAP_PROP_FRAME_WIDTH)/ray,(int) inputVideo.get(CAP_PROP_FRAME_HEIGHT)/ray);
+    
     VideoWriter outputVideo;                                        
     outputVideo.open(argv[3], ex, inputVideo.get(CAP_PROP_FPS), S, true);
+    
     Mat* currentFrame = new Mat();
     for(;;) {
         inputVideo.read(*currentFrame);

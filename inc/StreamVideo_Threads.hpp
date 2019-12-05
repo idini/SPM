@@ -15,10 +15,10 @@ struct Task{
 
 struct timeval t0,t1;
 
-class ReduceVideo {
+class StreamVideo {
 
 public:
-  ReduceVideo();
+  StreamVideo();
   void create_and_run(int num, const char *inputName, const char* ray, const char *outputName);
 protected:
       
